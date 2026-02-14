@@ -54,31 +54,45 @@
                 yesBtn.style.transform = `scale(${yesScale})`;
             }
 
-            const btnW = noBtn.offsetWidth;
-            const btnH = noBtn.offsetHeight;
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
+            // Get the absolute current dimensions of the screen
+            const vw = document.documentElement.clientWidth;
+            const vh = document.documentElement.clientHeight;
 
-            // 60% AREA (20% margins on all sides)
+            // STRICT 60% AREA (20% margins)
             const minX = vw * 0.20;
             const maxX = vw * 0.80;
             const minY = vh * 0.20;
             const maxY = vh * 0.80;
 
-            // Detect actual scaled size of Yes button
-            const yesOriginalWidth = 110; 
-            const currentYesWidth = yesOriginalWidth * yesScale;
-            
+            const btnW = noBtn.offsetWidth;
+            const btnH = noBtn.offsetHeight;
+
+            // Caculate the edge-to-edge "Safe Room"
+            const safeMinX = minX + (btnW / 2);
+            const safeMaxX = maxX - (btnW / 2);
+            const safeMinY = minY + (btnH / 2);
+            const safeMaxY = maxY - (btnH / 2);
+
+            const yesRect = yesBtn.getBoundingClientRect();
             const centerX = vw / 2;
             const centerY = vh / 2;
 
-            const currentRadiusMin = (currentYesWidth / 2) + 5;
+            // Distance required to clear the Yes button
+            const currentRadiusMin = (yesRect.width / 2) + 10;
             const currentRadiusMax = Math.min(centerX - minX, maxX - centerX, centerY - minY, maxY - centerY);
 
             let finalX, finalY;
 
-            // Mode 1: Standard Escape (Inside 60% zone, outside Yes button)
-            if (currentRadiusMax > currentRadiusMin + 15) {
+            // If the Yes button is too big for the No button to orbit in the 60% zone
+            if (currentRadiusMax <= currentRadiusMin + 5) {
+                // EMERGENCY JITTER: Stay under Yes button but within 60% cage
+                const dirX = (Math.random() > 0.5) ? 15 : -15;
+                const dirY = (Math.random() > 0.5) ? 15 : -15;
+                const currentRect = noBtn.getBoundingClientRect();
+                finalX = (currentRect.left + btnW/2) + dirX;
+                finalY = (currentRect.top + btnH/2) + dirY;
+            } else {
+                // NORMAL MODE: Jump to a random spot inside 60% zone but outside Yes
                 let attempts = 0;
                 do {
                     const angle = Math.random() * Math.PI * 2;
@@ -86,25 +100,10 @@
                     finalX = centerX + (Math.cos(angle) * radius);
                     finalY = centerY + (Math.sin(angle) * radius);
                     attempts++;
-                } while (attempts < 50 && (
-                    (finalX - btnW/2) < minX || (finalX + btnW/2) > maxX || 
-                    (finalY - btnH/2) < minY || (finalY + btnH/2) > maxY
-                ));
-            } else {
-                // Mode 2: Emergency Shift (Forced behind Yes button by the 60% margin)
-                const currentRect = noBtn.getBoundingClientRect();
-                const dirX = (Math.random() > 0.5) ? 12 : -12;
-                const dirY = (Math.random() > 0.5) ? 12 : -12;
-                finalX = (currentRect.left + btnW/2) + dirX;
-                finalY = (currentRect.top + btnH/2) + dirY;
+                } while (attempts < 50 && (finalX < safeMinX || finalX > safeMaxX || finalY < safeMinY || finalY > safeBottom));
             }
 
-            // THE 60% LOCKDOWN CLAMP
-            const safeMinX = minX + (btnW / 2);
-            const safeMaxX = maxX - (btnW / 2);
-            const safeMinY = minY + (btnH / 2);
-            const safeMaxY = maxY - (btnH / 2);
-
+            // THE FAIL-SAFE CLAMP: No matter what the math says, the button stays in the 60% box
             finalX = Math.max(safeMinX, Math.min(finalX, safeMaxX));
             finalY = Math.max(safeMinY, Math.min(finalY, safeMaxY));
 
@@ -112,7 +111,7 @@
             noBtn.style.left = `${finalX - (btnW / 2)}px`;
             noBtn.style.top = `${finalY - (btnH / 2)}px`;
             noBtn.style.margin = "0";
-            noBtn.style.zIndex = "50"; 
+            noBtn.style.zIndex = "10"; // Lower than Yes
         }
 
         function showAlert(id) {
