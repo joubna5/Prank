@@ -55,23 +55,26 @@
             }
 
             const yesRect = yesBtn.getBoundingClientRect();
-            const noRect = noBtn.getBoundingClientRect();
+            const btnW = noBtn.offsetWidth;
+            const btnH = noBtn.offsetHeight;
+
+            // STRICT 70% Boundaries (accounting for button size)
+            // minX is 15% margin + half button width to keep it fully inside
+            const minX = (window.innerWidth * 0.15) + (btnW / 2);
+            const maxX = (window.innerWidth * 0.85) - (btnW / 2);
+            const minY = (window.innerHeight * 0.15) + (btnH / 2);
+            const maxY = (window.innerHeight * 0.85) - (btnH / 2);
+
             const centerX = yesRect.left + (yesRect.width / 2);
             const centerY = yesRect.top + (yesRect.height / 2);
 
-            // 70% Boundaries
-            const minX = window.innerWidth * 0.15;
-            const maxX = window.innerWidth * 0.85;
-            const minY = window.innerHeight * 0.15;
-            const maxY = window.innerHeight * 0.85;
-
-            // Mode 1: Standard Orbit (Between Yes border and Screen border)
-            const currentRadiusMin = (yesRect.width / 2) + 10;
+            // Logic: Move between Yes border and Screen border
+            const currentRadiusMin = (yesRect.width / 2) + 5;
             const currentRadiusMax = Math.min(centerX - minX, maxX - centerX, centerY - minY, maxY - centerY);
 
             noBtn.style.position = 'fixed';
 
-            // Check if there is still space to escape outward
+            // Check if there's actual room between Yes button and 70% margin
             if (currentRadiusMax > currentRadiusMin) {
                 let finalX, finalY;
                 let attempts = 0;
@@ -81,24 +84,24 @@
                     finalX = centerX + (Math.cos(angle) * radius);
                     finalY = centerY + (Math.sin(angle) * radius);
                     attempts++;
-                } while (attempts < 50 && (finalX < minX || finalX > maxX || finalY < minY || finalY > maxY));
+                } while (attempts < 100 && (finalX < minX || finalX > maxX || finalY < minY || finalY > maxY));
 
-                noBtn.style.left = `${finalX - (noBtn.offsetWidth / 2)}px`;
-                noBtn.style.top = `${finalY - (noBtn.offsetHeight / 2)}px`;
+                noBtn.style.left = `${finalX - (btnW / 2)}px`;
+                noBtn.style.top = `${finalY - (btnH / 2)}px`;
             } 
-            // Mode 2: Emergency Shift (No room left, move 10px away from nearest margin)
+            // EMERGENCY MODE: 10px shift behind the Yes button
             else {
-                let currentLeft = noRect.left;
-                let currentTop = noRect.top;
+                const noRect = noBtn.getBoundingClientRect();
+                let shiftX = (centerX < window.innerWidth / 2) ? 10 : -10;
+                let shiftY = (centerY < window.innerHeight / 2) ? 10 : -10;
+                
+                // Clamp the emergency shift to ensure it NEVER exits the margins
+                let newLeft = Math.max(minX - btnW/2, Math.min(noRect.left + shiftX, maxX - btnW/2));
+                let newTop = Math.max(minY - btnH/2, Math.min(noRect.top + shiftY, maxY - btnH/2));
 
-                // Shift 10px away from the closest edge
-                if (centerX < window.innerWidth / 2) currentLeft += 10; else currentLeft -= 10;
-                if (centerY < window.innerHeight / 2) currentTop += 10; else currentTop -= 10;
-
-                noBtn.style.left = `${currentLeft}px`;
-                noBtn.style.top = `${currentTop}px`;
+                noBtn.style.left = `${newLeft}px`;
+                noBtn.style.top = `${newTop}px`;
             }
-
             noBtn.style.margin = "0";
         }
 
