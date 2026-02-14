@@ -64,10 +64,10 @@
             const centerY = yesRect.top + (yesRect.height / 2);
 
             // 3. 90% Screen Margin logic (5% padding on all sides)
-            const minX = window.innerWidth * 0.05;
-            const maxX = window.innerWidth * 0.95;
-            const minY = window.innerHeight * 0.05;
-            const maxY = window.innerHeight * 0.95;
+            const minX = window.innerWidth * 0.1;
+            const maxX = window.innerWidth * 0.9;
+            const minY = window.innerHeight * 0.1;
+            const maxY = window.innerHeight * 0.9;
 
             let finalX, finalY;
             let attempts = 0;
@@ -105,3 +105,4 @@
     </script>
 </body>
 </html>
+
