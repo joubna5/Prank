@@ -1,0 +1,123 @@
+/* General Reset and Body Styling */
+html, body {
+    min-height: 100svh;
+    width: 100%;
+    background-color: #400000;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Times New Roman', serif;
+}
+
+body {
+    background-image: radial-gradient(circle at center, #630617, #400000);
+    background-attachment: fixed;
+}
+
+/* The Main Proposal Container */
+.proposal-box {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 25px;
+    padding: 50px 30px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+/* Heading Styling */
+h1 {
+    font-size: clamp(26px, 7vw, 38px);
+    margin-bottom: 45px;
+    color: white;
+    line-height: 1.3;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Button Container - Acts as the coordinate base */
+.btn-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px; 
+    width: 100%;
+}
+
+/* Base Button Styling */
+.val-btn {
+    background: linear-gradient(135deg, #8b0000, #5a0000);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 35px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-decoration: none;
+    min-width: 110px;
+    position: absolute;
+    font-family: 'Times New Roman', serif;
+}
+
+/* Yes Button specific behavior */
+#yesBtn {
+    z-index: 30; 
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-origin: center center;
+}
+
+/* No Button specific behavior */
+#noBtn {
+    z-index: 20; 
+    transition: left 0.15s ease-out, top 0.15s ease-out;
+}
+
+/* Custom Alert Popups */
+.custom-alert {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(30, 0, 0, 0.98);
+    border: 2px solid #ff4d4d;
+    padding: 30px;
+    border-radius: 20px;
+    color: white;
+    text-align: center;
+    z-index: 100;
+    box-shadow: 0 0 50px rgba(0,0,0,1);
+    width: 80%;
+    max-width: 400px;
+}
+
+.custom-alert button {
+    margin-top: 20px;
+    background: #8b0000;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 15px;
+    cursor: pointer;
+    font-family: 'Times New Roman', serif;
+}
+
+/* Dark Background Overlay for Alerts */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    z-index: 90;
+}
