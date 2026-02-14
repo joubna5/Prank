@@ -53,44 +53,52 @@
 
             moveCount++;
 
-            // 1. Growth Logic for Yes Button
             if (moveCount > 2) {
                 yesScale += 0.4;
                 yesBtn.style.transform = `scale(${yesScale})`;
             }
 
-            // 2. Get the current size and center of the Yes button
             const yesRect = yesBtn.getBoundingClientRect();
             const centerX = yesRect.left + (yesRect.width / 2);
             const centerY = yesRect.top + (yesRect.height / 2);
 
-            // 3. DYNAMIC RADIUS: Start the orbit just outside the Yes button's current width
-            // We add 40px as a safety buffer so they don't touch
-            let currentRadiusMin = (yesRect.width / 2) + 40; 
-            let currentRadiusMax = currentRadiusMin + 80;
-
-            // 4. Screen Boundaries (90% visible area)
+            // Screen Boundaries (10% margin / 90% area)
             const minX = window.innerWidth * 0.1;
             const maxX = window.innerWidth * 0.9;
             const minY = window.innerHeight * 0.1;
             const maxY = window.innerHeight * 0.9;
+
+            // DYNAMIC RADIUS CALCULATION
+            // Minimum radius: Just outside the Yes button edge (+20px buffer)
+            const currentRadiusMin = (yesRect.width / 2) + 20; 
+
+            // Maximum radius: Distance to the nearest screen boundary
+            const distToLeft = centerX - minX;
+            const distToRight = maxX - centerX;
+            const distToTop = centerY - minY;
+            const distToBottom = maxY - centerY;
+            
+            // The max radius is the smallest distance to a border to ensure it stays on screen
+            const currentRadiusMax = Math.min(distToLeft, distToRight, distToTop, distToBottom);
 
             let finalX, finalY;
             let attempts = 0;
 
             do {
                 const angle = Math.random() * Math.PI * 2;
-                const radius = Math.floor(Math.random() * (currentRadiusMax - currentRadiusMin + 1)) + currentRadiusMin; 
+                // Generate radius between the button edge and the screen border
+                const radius = Math.random() * (currentRadiusMax - currentRadiusMin) + currentRadiusMin;
 
                 finalX = centerX + (Math.cos(angle) * radius);
                 finalY = centerY + (Math.sin(angle) * radius);
                 attempts++;
+
+                // Safety check: ensure coordinates are actually within the 90% zone
             } while (attempts < 50 && (
                 finalX < minX || (finalX + noBtn.offsetWidth/2) > maxX || 
                 finalY < minY || (finalY + noBtn.offsetHeight/2) > maxY
             ));
 
-            // Only the No button moves
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${finalX - (noBtn.offsetWidth / 2)}px`;
             noBtn.style.top = `${finalY - (noBtn.offsetHeight / 2)}px`;
