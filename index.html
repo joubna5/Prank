@@ -32,10 +32,15 @@
     </div>
 
     <script>
+        /**
+         * Note: Added a 'locked' flag to ensure the Yes button captures 
+         * its side-by-side position before the No button leaves the layout.
+         */
         let moveCount = 0;
         let yesScale = 1;
         let baseRadiusMin = 100; 
         let baseRadiusMax = 160;
+        let yesLocked = false;
 
         function handleYes() {
             if (moveCount === 0) {
@@ -48,21 +53,21 @@
         function moveNoButton() {
             const noBtn = document.getElementById('noBtn');
             const yesBtn = document.getElementById('yesBtn');
-            const container = document.getElementById('container');
 
-            // On the very first move, lock the Yes button in its current visual spot
-            // so the container doesn't re-center it when the No button leaves.
-            if (moveCount === 0) {
+            // 1. Lock the Yes Button in place immediately
+            if (!yesLocked) {
                 const yesRect = yesBtn.getBoundingClientRect();
+                // Set to fixed using current screen coordinates so it never moves
                 yesBtn.style.position = 'fixed';
                 yesBtn.style.left = `${yesRect.left}px`;
                 yesBtn.style.top = `${yesRect.top}px`;
                 yesBtn.style.margin = '0';
+                yesLocked = true;
             }
 
             moveCount++;
 
-            // 1. Growth Logic
+            // 2. Growth Logic (after 2 moves)
             if (moveCount > 2) {
                 yesScale += 0.4;
                 yesBtn.style.transform = `scale(${yesScale})`;
@@ -70,12 +75,12 @@
                 baseRadiusMax += 30;
             }
 
-            // 2. Get the center of the now-locked Yes button
+            // 3. Center Calculation based on the now-fixed Yes button
             const yesRect = yesBtn.getBoundingClientRect();
             const centerX = yesRect.left + (yesRect.width / 2);
             const centerY = yesRect.top + (yesRect.height / 2);
 
-            // 3. 90% Screen Margin (using your 0.1/0.9 values)
+            // 4. 90% Screen Margin (Strict 0.1/0.9)
             const minX = window.innerWidth * 0.1;
             const maxX = window.innerWidth * 0.9;
             const minY = window.innerHeight * 0.1;
