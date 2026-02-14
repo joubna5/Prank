@@ -40,14 +40,17 @@ h1 {
 .main-btn-wrapper {
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* This aligns them on the same horizontal line */
     min-height: 150px;
+    gap: 20px;
 }
 
 .btn-slot {
-    min-width: 130px;
     display: flex;
     justify-content: center;
+    align-items: center;
+    width: 120px;
+    height: 100%;
 }
 
 .val-btn {
@@ -60,6 +63,7 @@ h1 {
     cursor: pointer;
     min-width: 100px;
     font-family: 'Times New Roman', serif;
+    white-space: nowrap;
 }
 
 #yesBtn {
@@ -69,12 +73,9 @@ h1 {
 }
 
 #noBtn {
-    position: fixed;
-    /* Aligned starting point */
-    left: calc(50% + 15px);
-    top: calc(50% + 48px); 
     z-index: 49;
     transition: left 0.15s ease-out, top 0.15s ease-out;
+    /* Removed fixed positioning from start to ensure mobile alignment */
 }
 
 .custom-alert {
@@ -109,4 +110,3 @@ h1 {
     background: rgba(0,0,0,0.8);
     z-index: 2500;
 }
-
