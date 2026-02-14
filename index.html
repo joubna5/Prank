@@ -40,17 +40,13 @@
         let yesScale = 1;
 
         function handleYes() {
-            if (moveCount === 0) {
-                showAlert('alertYes');
-            } else {
-                showAlert('alertNo');
-            }
+            if (moveCount === 0) showAlert('alertYes');
+            else showAlert('alertNo');
         }
 
         function moveNoButton() {
             const noBtn = document.getElementById('noBtn');
             const yesBtn = document.getElementById('yesBtn');
-
             moveCount++;
 
             if (moveCount > 2) {
@@ -59,50 +55,51 @@
             }
 
             const yesRect = yesBtn.getBoundingClientRect();
+            const noRect = noBtn.getBoundingClientRect();
             const centerX = yesRect.left + (yesRect.width / 2);
             const centerY = yesRect.top + (yesRect.height / 2);
 
-            // 70% Safe Zone (15% margins)
+            // 70% Boundaries
             const minX = window.innerWidth * 0.15;
-            const maxX = window.innerWidth * 0.7;
+            const maxX = window.innerWidth * 0.85;
             const minY = window.innerHeight * 0.15;
-            const maxY = window.innerHeight * 0.7;
+            const maxY = window.innerHeight * 0.85;
 
-            // Allow the No button to land on top of the Yes button
-            const currentRadiusMin = 0; 
-            
-            let currentRadiusMax = Math.min(
-                centerX - minX, 
-                maxX - centerX, 
-                centerY - minY, 
-                maxY - centerY
-            );
-
-            let finalX, finalY;
-            let attempts = 0;
-            const btnW = noBtn.offsetWidth;
-            const btnH = noBtn.offsetHeight;
-
-            do {
-                const angle = Math.random() * Math.PI * 2;
-                const radius = Math.random() * currentRadiusMax;
-
-                finalX = centerX + (Math.cos(angle) * radius);
-                finalY = centerY + (Math.sin(angle) * radius);
-                attempts++;
-
-                // VALIDATION: Ensure the entire button box stays within the 70% area
-            } while (attempts < 150 && (
-                (finalX - btnW/2) < minX || (finalX + btnW/2) > maxX || 
-                (finalY - btnH/2) < minY || (finalY + btnH/2) > maxY
-            ));
+            // Mode 1: Standard Orbit (Between Yes border and Screen border)
+            const currentRadiusMin = (yesRect.width / 2) + 10;
+            const currentRadiusMax = Math.min(centerX - minX, maxX - centerX, centerY - minY, maxY - centerY);
 
             noBtn.style.position = 'fixed';
-            noBtn.style.left = `${finalX - (btnW / 2)}px`;
-            noBtn.style.top = `${finalY - (btnH / 2)}px`;
+
+            // Check if there is still space to escape outward
+            if (currentRadiusMax > currentRadiusMin) {
+                let finalX, finalY;
+                let attempts = 0;
+                do {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = Math.random() * (currentRadiusMax - currentRadiusMin) + currentRadiusMin;
+                    finalX = centerX + (Math.cos(angle) * radius);
+                    finalY = centerY + (Math.sin(angle) * radius);
+                    attempts++;
+                } while (attempts < 50 && (finalX < minX || finalX > maxX || finalY < minY || finalY > maxY));
+
+                noBtn.style.left = `${finalX - (noBtn.offsetWidth / 2)}px`;
+                noBtn.style.top = `${finalY - (noBtn.offsetHeight / 2)}px`;
+            } 
+            // Mode 2: Emergency Shift (No room left, move 10px away from nearest margin)
+            else {
+                let currentLeft = noRect.left;
+                let currentTop = noRect.top;
+
+                // Shift 10px away from the closest edge
+                if (centerX < window.innerWidth / 2) currentLeft += 10; else currentLeft -= 10;
+                if (centerY < window.innerHeight / 2) currentTop += 10; else currentTop -= 10;
+
+                noBtn.style.left = `${currentLeft}px`;
+                noBtn.style.top = `${currentTop}px`;
+            }
+
             noBtn.style.margin = "0";
-            // FORCE NO BUTTON TO THE FRONT
-            noBtn.style.zIndex = "9999";
         }
 
         function showAlert(id) {
