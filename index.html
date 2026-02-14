@@ -32,7 +32,7 @@
 
     <div id="alertNo" class="custom-alert">
         <h2>No way you said yes</h2>
-        <p>Now we wait till the gift is ready baby girl</p>
+        <p>Now we wait till the gift is ready baby girl <span id="moveCountDisplay"></span></p>
         <button onclick="closeAlert('alertNo')">Close</button>
     </div>
 
@@ -41,8 +41,13 @@
         let yesScale = 1;
 
         function handleYes() {
-            if (moveCount === 0) showAlert('alertYes');
-            else showAlert('alertNo');
+            if (moveCount === 0) {
+                showAlert('alertYes');
+            } else {
+                // Only adds the number to the span, doesn't edit your original text
+                document.getElementById('moveCountDisplay').innerText = `(${moveCount})`;
+                showAlert('alertNo');
+            }
         }
 
         function moveNoButton() {
@@ -60,7 +65,6 @@
             const btnW = noBtn.offsetWidth;
             const btnH = noBtn.offsetHeight;
 
-            // 1. OUTER DEAD ZONE: HARD 140PX MARGIN
             const minX = 140;
             const maxX = vw - 140;
             const minY = 140;
@@ -72,12 +76,10 @@
             let foundSafeSpot = false;
             let attempts = 0;
 
-            // 2. INNER DEAD ZONE: Try to find a spot that is NOT the Yes button
             while (!foundSafeSpot && attempts < 100) {
                 let testX = Math.random() * (maxX - minX - btnW) + minX;
                 let testY = Math.random() * (maxY - minY - btnH) + minY;
 
-                // Check if test point is inside Yes button boundaries
                 const isOverlappingYes = !(
                     testX + btnW < yesRect.left ||
                     testX > yesRect.right ||
@@ -93,15 +95,12 @@
                 attempts++;
             }
 
-            // 3. EMERGENCY JITTER: If no safe spot found (Yes is too big), enter Yes area
             if (!foundSafeSpot) {
                 const currentRect = noBtn.getBoundingClientRect();
-                // Remove Yes deadzone restriction and just jitter 3px
                 finalX = currentRect.left + (Math.random() > 0.5 ? 20 : -20);
                 finalY = currentRect.top + (Math.random() > 0.5 ? 20 : -20);
             }
 
-            // FINAL CLAMP: Strict 140px lockdown (Outer Dead Zone is never removed)
             finalX = Math.max(minX, Math.min(finalX, maxX - btnW));
             finalY = Math.max(minY, Math.min(finalY, maxY - btnH));
 
@@ -123,4 +122,3 @@
     </script>
 </body>
 </html>
-
