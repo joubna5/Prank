@@ -58,50 +58,55 @@
             const btnW = noBtn.offsetWidth;
             const btnH = noBtn.offsetHeight;
 
-            // STRICT 70% Boundaries (accounting for button size)
-            // minX is 15% margin + half button width to keep it fully inside
-            const minX = (window.innerWidth * 0.15) + (btnW / 2);
-            const maxX = (window.innerWidth * 0.85) - (btnW / 2);
-            const minY = (window.innerHeight * 0.15) + (btnH / 2);
-            const maxY = (window.innerHeight * 0.85) - (btnH / 2);
+            // Get viewport dimensions accurately
+            const vw = document.documentElement.clientWidth;
+            const vh = document.documentElement.clientHeight;
+
+            // Define the 70% box boundaries (15% margin)
+            const minX = vw * 0.15;
+            const maxX = vw * 0.85;
+            const minY = vh * 0.15;
+            const maxY = vh * 0.85;
 
             const centerX = yesRect.left + (yesRect.width / 2);
             const centerY = yesRect.top + (yesRect.height / 2);
 
-            // Logic: Move between Yes border and Screen border
             const currentRadiusMin = (yesRect.width / 2) + 5;
+            // Max radius is the distance to the edge of our 70% zone
             const currentRadiusMax = Math.min(centerX - minX, maxX - centerX, centerY - minY, maxY - centerY);
 
-            noBtn.style.position = 'fixed';
+            let finalX, finalY;
 
-            // Check if there's actual room between Yes button and 70% margin
             if (currentRadiusMax > currentRadiusMin) {
-                let finalX, finalY;
-                let attempts = 0;
-                do {
-                    const angle = Math.random() * Math.PI * 2;
-                    const radius = Math.random() * (currentRadiusMax - currentRadiusMin) + currentRadiusMin;
-                    finalX = centerX + (Math.cos(angle) * radius);
-                    finalY = centerY + (Math.sin(angle) * radius);
-                    attempts++;
-                } while (attempts < 100 && (finalX < minX || finalX > maxX || finalY < minY || finalY > maxY));
-
-                noBtn.style.left = `${finalX - (btnW / 2)}px`;
-                noBtn.style.top = `${finalY - (btnH / 2)}px`;
-            } 
-            // EMERGENCY MODE: 10px shift behind the Yes button
-            else {
+                // Orbit Mode
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * (currentRadiusMax - currentRadiusMin) + currentRadiusMin;
+                finalX = centerX + (Math.cos(angle) * radius);
+                finalY = centerY + (Math.sin(angle) * radius);
+            } else {
+                // Emergency Shift Mode (stays behind Yes, but moves away from nearest edge)
                 const noRect = noBtn.getBoundingClientRect();
-                let shiftX = (centerX < window.innerWidth / 2) ? 10 : -10;
-                let shiftY = (centerY < window.innerHeight / 2) ? 10 : -10;
-                
-                // Clamp the emergency shift to ensure it NEVER exits the margins
-                let newLeft = Math.max(minX - btnW/2, Math.min(noRect.left + shiftX, maxX - btnW/2));
-                let newTop = Math.max(minY - btnH/2, Math.min(noRect.top + shiftY, maxY - btnH/2));
-
-                noBtn.style.left = `${newLeft}px`;
-                noBtn.style.top = `${newTop}px`;
+                const shiftX = (centerX < vw / 2) ? 10 : -10;
+                const shiftY = (centerY < vh / 2) ? 10 : -10;
+                finalX = (noRect.left + btnW/2) + shiftX;
+                finalY = (noRect.top + btnH/2) + shiftY;
             }
+
+            // --- THE STRICTOR CLAMP ---
+            // This forces the BUTTON BOX to stay inside minX, maxX, minY, maxY
+            // We ensure (finalX - halfWidth) is never less than minX
+            // and (finalX + halfWidth) is never more than maxX
+            const safeLeft = minX + (btnW / 2);
+            const safeRight = maxX - (btnW / 2);
+            const safeTop = minY + (btnH / 2);
+            const safeBottom = maxY - (btnH / 2);
+
+            finalX = Math.max(safeLeft, Math.min(finalX, safeRight));
+            finalY = Math.max(safeTop, Math.min(finalY, safeBottom));
+
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = `${finalX - (btnW / 2)}px`;
+            noBtn.style.top = `${finalY - (btnH / 2)}px`;
             noBtn.style.margin = "0";
         }
 
