@@ -54,60 +54,69 @@
                 yesBtn.style.transform = `scale(${yesScale})`;
             }
 
-            const yesRect = yesBtn.getBoundingClientRect();
             const btnW = noBtn.offsetWidth;
             const btnH = noBtn.offsetHeight;
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
 
-            // Get viewport dimensions accurately
-            const vw = document.documentElement.clientWidth;
-            const vh = document.documentElement.clientHeight;
-
-            // Define the 70% box boundaries (15% margin)
+            // 1. HARD BOUNDARIES (The 70% Box)
             const minX = vw * 0.15;
             const maxX = vw * 0.85;
             const minY = vh * 0.15;
             const maxY = vh * 0.85;
 
-            const centerX = yesRect.left + (yesRect.width / 2);
-            const centerY = yesRect.top + (yesRect.height / 2);
+            // 2. ACTUAL YES SIZE (Original width * scale factor)
+            const yesOriginalWidth = 110; // Base min-width from CSS
+            const currentYesWidth = yesOriginalWidth * yesScale;
+            
+            // We use the center of the screen as the anchor for math
+            const centerX = vw / 2;
+            const centerY = vh / 2;
 
-            const currentRadiusMin = (yesRect.width / 2) + 5;
-            // Max radius is the distance to the edge of our 70% zone
+            // Min radius is the edge of the scaled Yes button
+            const currentRadiusMin = (currentYesWidth / 2) + 5;
+            // Max radius is distance to the 70% border
             const currentRadiusMax = Math.min(centerX - minX, maxX - centerX, centerY - minY, maxY - centerY);
 
             let finalX, finalY;
 
-            if (currentRadiusMax > currentRadiusMin) {
-                // Orbit Mode
-                const angle = Math.random() * Math.PI * 2;
-                const radius = Math.random() * (currentRadiusMax - currentRadiusMin) + currentRadiusMin;
-                finalX = centerX + (Math.cos(angle) * radius);
-                finalY = centerY + (Math.sin(angle) * radius);
+            // 3. LOGIC CHECK
+            if (currentRadiusMax > currentRadiusMin + 20) {
+                // There is room to jump around!
+                let attempts = 0;
+                do {
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = Math.random() * (currentRadiusMax - currentRadiusMin) + currentRadiusMin;
+                    finalX = centerX + (Math.cos(angle) * radius);
+                    finalY = centerY + (Math.sin(angle) * radius);
+                    attempts++;
+                } while (attempts < 50 && (
+                    (finalX - btnW/2) < minX || (finalX + btnW/2) > maxX || 
+                    (finalY - btnH/2) < minY || (finalY + btnH/2) > maxY
+                ));
             } else {
-                // Emergency Shift Mode (stays behind Yes, but moves away from nearest edge)
-                const noRect = noBtn.getBoundingClientRect();
-                const shiftX = (centerX < vw / 2) ? 10 : -10;
-                const shiftY = (centerY < vh / 2) ? 10 : -10;
-                finalX = (noRect.left + btnW/2) + shiftX;
-                finalY = (noRect.top + btnH/2) + shiftY;
+                // No room left! Emergency 10px jitter
+                const currentRect = noBtn.getBoundingClientRect();
+                const dirX = (Math.random() > 0.5) ? 10 : -10;
+                const dirY = (Math.random() > 0.5) ? 10 : -10;
+                finalX = (currentRect.left + btnW/2) + dirX;
+                finalY = (currentRect.top + btnH/2) + dirY;
             }
 
-            // --- THE STRICTOR CLAMP ---
-            // This forces the BUTTON BOX to stay inside minX, maxX, minY, maxY
-            // We ensure (finalX - halfWidth) is never less than minX
-            // and (finalX + halfWidth) is never more than maxX
-            const safeLeft = minX + (btnW / 2);
-            const safeRight = maxX - (btnW / 2);
-            const safeTop = minY + (btnH / 2);
-            const safeBottom = maxY - (btnH / 2);
+            // 4. THE ULTIMATE CLAMP (No part of the button leaves the box)
+            const safeMinX = minX + (btnW / 2);
+            const safeMaxX = maxX - (btnW / 2);
+            const safeMinY = minY + (btnH / 2);
+            const safeMaxY = maxY - (btnH / 2);
 
-            finalX = Math.max(safeLeft, Math.min(finalX, safeRight));
-            finalY = Math.max(safeTop, Math.min(finalY, safeBottom));
+            finalX = Math.max(safeMinX, Math.min(finalX, safeMaxX));
+            finalY = Math.max(safeMinY, Math.min(finalY, safeMaxY));
 
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${finalX - (btnW / 2)}px`;
             noBtn.style.top = `${finalY - (btnH / 2)}px`;
             noBtn.style.margin = "0";
+            noBtn.style.zIndex = "50"; // Stays behind Yes
         }
 
         function showAlert(id) {
