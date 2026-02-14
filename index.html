@@ -17,7 +17,8 @@
             <div class="btn-slot">
                 <button class="val-btn" id="yesBtn" onclick="handleYes()">Yes</button>
             </div>
-            <div class="btn-slot"></div> 
+            <div class="btn-slot">
+                </div>
         </div>
     </div>
 
@@ -54,57 +55,60 @@
                 yesBtn.style.transform = `scale(${yesScale})`;
             }
 
-            const btnW = noBtn.offsetWidth;
-            const btnH = noBtn.offsetHeight;
             const vw = window.innerWidth;
             const vh = window.innerHeight;
+            const btnW = noBtn.offsetWidth;
+            const btnH = noBtn.offsetHeight;
 
-            // 60% Zone: 20% margin on all sides
-            const minX = vw * 0.20;
-            const maxX = vw * 0.80;
-            const minY = vh * 0.20;
-            const maxY = vh * 0.80;
+            // 1. OUTER DEAD ZONE: HARD 140PX MARGIN
+            const minX = 140;
+            const maxX = vw - 140;
+            const minY = 140;
+            const maxY = vh - 140;
 
+            const yesRect = yesBtn.getBoundingClientRect();
+            
             let finalX, finalY;
-            let isOverlapping = true;
+            let foundSafeSpot = false;
             let attempts = 0;
 
-            while (isOverlapping && attempts < 100) {
-                // Pick a random spot strictly inside the 60% cage
-                finalX = Math.random() * (maxX - minX - btnW) + minX;
-                finalY = Math.random() * (maxY - minY - btnH) + minY;
+            // 2. INNER DEAD ZONE: Try to find a spot that is NOT the Yes button
+            while (!foundSafeSpot && attempts < 100) {
+                let testX = Math.random() * (maxX - minX - btnW) + minX;
+                let testY = Math.random() * (maxY - minY - btnH) + minY;
 
-                // Check if this spot overlaps the Yes Button
-                const yesRect = yesBtn.getBoundingClientRect();
-                const padding = 10; // Extra space around Yes
+                // Check if test point is inside Yes button boundaries
+                const isOverlappingYes = !(
+                    testX + btnW < yesRect.left ||
+                    testX > yesRect.right ||
+                    testY + btnH < yesRect.top ||
+                    testY > yesRect.bottom
+                );
 
-                if (
-                    finalX + btnW < yesRect.left - padding || 
-                    finalX > yesRect.right + padding || 
-                    finalY + btnH < yesRect.top - padding || 
-                    finalY > yesRect.bottom + padding
-                ) {
-                    isOverlapping = false;
+                if (!isOverlappingYes) {
+                    finalX = testX;
+                    finalY = testY;
+                    foundSafeSpot = true;
                 }
                 attempts++;
             }
 
-            // If it's too crowded and we couldn't find a spot, 
-            // the button stays where it is but jitters 10px (Emergency mode)
-            if (attempts >= 100) {
+            // 3. EMERGENCY JITTER: If no safe spot found (Yes is too big), enter Yes area
+            if (!foundSafeSpot) {
                 const currentRect = noBtn.getBoundingClientRect();
-                finalX = currentRect.left + (Math.random() > 0.5 ? 10 : -10);
-                finalY = currentRect.top + (Math.random() > 0.5 ? 10 : -10);
+                // Remove Yes deadzone restriction and just jitter 3px
+                finalX = currentRect.left + (Math.random() > 0.5 ? 3 : -3);
+                finalY = currentRect.top + (Math.random() > 0.5 ? 3 : -3);
             }
 
-            // FINAL LOCKDOWN: Ensure it's impossible to be outside margins
+            // FINAL CLAMP: Strict 140px lockdown (Outer Dead Zone is never removed)
             finalX = Math.max(minX, Math.min(finalX, maxX - btnW));
             finalY = Math.max(minY, Math.min(finalY, maxY - btnH));
 
             noBtn.style.position = 'fixed';
             noBtn.style.left = `${finalX}px`;
             noBtn.style.top = `${finalY}px`;
-            noBtn.style.zIndex = "1000"; // Always on top
+            noBtn.style.zIndex = "2000"; 
         }
 
         function showAlert(id) {
