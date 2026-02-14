@@ -93,15 +93,15 @@
                 attempts++;
             }
 
-            // 3. EMERGENCY JITTER: If no safe spot found (Yes is too big), enter Yes area
+            // 3. EMERGENCY JITTER: 6px fallback if no safe spot found
             if (!foundSafeSpot) {
                 const currentRect = noBtn.getBoundingClientRect();
-                // Remove Yes deadzone restriction and just jitter 3px
-                finalX = currentRect.left + (Math.random() > 0.5 ? 3 : -3);
-                finalY = currentRect.top + (Math.random() > 0.5 ? 3 : -3);
+                // Shift 6px in a random direction
+                finalX = currentRect.left + (Math.random() > 0.5 ? 10 : -10);
+                finalY = currentRect.top + (Math.random() > 0.5 ? 10 : -10);
             }
 
-            // FINAL CLAMP: Strict 140px lockdown (Outer Dead Zone is never removed)
+            // FINAL CLAMP: Strict 140px lockdown
             finalX = Math.max(minX, Math.min(finalX, maxX - btnW));
             finalY = Math.max(minY, Math.min(finalY, maxY - btnH));
 
